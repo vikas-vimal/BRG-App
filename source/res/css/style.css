@@ -3,6 +3,15 @@
 html,body{
     font-size:14px;
     background-color: #f8f9fa;
+    min-height: 100vh;
+    position: relative;
+}
+body{
+    padding-bottom: 50px;
+}
+
+.bg-primary {
+    background-color: var(--purple) !important;
 }
 
 [id*="project"] {
@@ -33,3 +42,16 @@ html,body{
 .soft-corners {border-radius: 5px; overflow: hidden;}
 
 #add-row-btn {border:none;font-size:28px;line-height:0.8;color:#fff;padding: 5px 9px 10px;border-radius: 20px;}
+
+.border-dashed {
+    border-style: dashed !important;
+    border-width: 2px !important;
+}
+
+footer {
+    background-color: #000;
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    margin-top: 50px;
+}
