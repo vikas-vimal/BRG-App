@@ -1,0 +1,35 @@
+@import url('bootstrap.min.css');
+
+html,body{
+    font-size:14px;
+    background-color: #f8f9fa;
+}
+
+[id*="project"] {
+    border:1px solid transparent;
+    border-radius: 5px;
+    /* padding: 5px 0; */
+}
+[id*="project"]:hover {
+    border:1px solid #09f;
+}
+
+.app-name{
+    font-size: 24px;
+    font-weight:400;
+    text-transform: uppercase;
+}
+
+.btn {
+    text-transform: uppercase;
+    font-weight: 600;
+    /* border-radius: 50px; */
+}
+
+.d-none {display:none;}
+
+#appIcon {max-width:20px;margin:0 20px 0 10px;transform: scale(2) translateY(-2px);}
+
+.soft-corners {border-radius: 5px; overflow: hidden;}
+
+#add-row-btn {border:none;font-size:28px;line-height:0.8;color:#fff;padding: 5px 9px 10px;border-radius: 20px;}
