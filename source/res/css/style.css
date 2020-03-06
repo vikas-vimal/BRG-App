@@ -10,6 +10,21 @@ body{
     padding-bottom: 50px;
 }
 
+.loading{
+    display: flex;
+    position: fixed;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    z-index: 999999;
+    justify-content: center;
+    align-items: center;
+}
+
 .bg-primary {
     background-color: #6f42c1 !important;
 }
@@ -40,6 +55,13 @@ body{
 #appIcon {max-width:20px;margin:0 20px 0 10px;transform: scale(2) translateY(-2px);}
 
 .soft-corners {border-radius: 5px; overflow: hidden;}
+
+.well {
+    background-color: #efefef;
+    padding:20px;
+    text-align: center;
+    border-radius: 10px;
+}
 
 #add-row-btn {border:none;font-size:28px;line-height:0.8;color:#fff;padding: 5px 9px 10px;border-radius: 20px;}
 

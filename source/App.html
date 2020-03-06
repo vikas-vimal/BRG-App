@@ -4,26 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Backlinks Report Generator</title>
+    <title>Backlinks Report Generator by DesignoFox</title>
     <link rel="stylesheet" href="res/css/style.css">
-    <style>
-        .loading{
-            display: flex;
-            position: fixed;
-            top:0;
-            left:0;
-            right:0;
-            bottom:0;
-            width: 100%;
-            height: 100%;
-            background-color: #fff;
-            z-index: 999999;
-            justify-content: center;
-            align-items: center;
-        }
-
-    </style>
-    <script src="res/js/machine.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.15.3/xlsx.full.min.js"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-108065441-2" type="3d566803e7ebdd731e63b66a-text/javascript"></script>
+    <script type="3d566803e7ebdd731e63b66a-text/javascript">
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-108065441-2');
+    </script>
 </head>
 <body>
     <div class="loading">
@@ -47,19 +38,20 @@
     
         <section id="import" class="mt-5" :class="sections.import === true ? '' : 'd-none'">
             <div class="container">
-                <div class="card bg-white border-primary shadow border-dashed">
+                <div class="card bg-white border-primary shadow border-dashed" id="importDropBox">
                     <div class="card-body p-5 text-center">
-                        <h3>Import Backup</h3>
-                        <p>Select the JSON Backup file.</p>
+                        <h3>Import Backup/Excel</h3>
+                        <p>Select the JSON Backup/Excel file.</p>
                         <p class="text-muted">Don't Drag & Drop file <b>(Not supported yet!)</b>.</p>
-                        <input type="file" id="inputBackupFile" v-on:change="readImport" accept=".json" style="display: none;"/>
+                        <p class="well">If you want to Import from Excel file. Please make sure that the First Row has the following Cells in each Sheet.<br><img width="80%" src="res/images/excel-demo.png" alt="Excel Header Columns Example"></p>
+                        <input type="file" id="inputBackupFile" v-on:change="readImport" accept=".json, .xls, .xlsx" style="display: none;"/>
                         <div class="d-none" id="import-backup-details">
                             <h5 id="import-backup-name"></h5>
                             <h5 id="import-backup-date"></h5>
                             <button class="btn btn-success shadow mt-3 mb-5 btn-lg" @click="finishImport">Confirm Import</button>
                         </div>
                         <div class="mt-4">
-                            <button class="btn btn-primary shadow" @click="importBackup" title="Browse for JSON file...">Select File</button>
+                            <button class="btn btn-primary shadow" @click="importBackup" title="Browse for JSON file..." id="selectImportFileBtn">Select Backup/Excel File</button>
                             <button class="btn btn-outline-dark px-3" @click="closeImport">Cancel</button>
                         </div>
                         
@@ -252,7 +244,12 @@
                     export : false,
                     import : false
                 },
-                import_data : {}
+                import : {
+                    fileName : '',
+                    fileType : '',
+                    data : {}
+                }
+
             },
             watch: {
                 project : {
@@ -315,6 +312,9 @@
                             pass: this.new_row.pass
                         } );
 
+                        // for (const i=0; i<this.new_row.length;i++) {
+                        //     this.new_row[i] = ''
+                        // }
                         this.new_row.url='';
                         this.new_row.da='';
                         this.new_row.pa='';
@@ -349,30 +349,120 @@
                     element.click();
                 },
 
+                checkImportFile: function(filename){
+                    console.log('Checking Import File')
+                    //Save Filename in data
+                    console.log(filename)
+                    this.import.fileName = filename;
+                    
+                    // check file type
+                    var checkExcel = /^([a-zA-Z0-9\s_\\.\-:])+(.xls|.xlsx)$/;
+                    var checkJson = /^([a-zA-Z0-9\s_\\.\-:])+(.json)$/;
+                    if(checkExcel.test(this.import.fileName)){
+                        this.import.fileType = 'excel'
+                        return true;
+                    }
+                    else if(checkJson.test(this.import.fileName)){
+                        this.import.fileType = 'json'
+                        return true;
+                    }
+                    else{
+                        this.import.fileName = '';
+                        return false;
+                    }
+                },
+
                 readImport: function(evt){
-                    var reader = new FileReader()
-                    reader.onload = this.onReaderLoad
-                    reader.readAsText(evt.target.files[0])
+                    console.log('Reading Import File')
+                    
+                    // check browser support
+                    const browserSupport = (typeof (FileReader) == "undefined") ? false : true;
+                    if(browserSupport){
+
+                        if(this.checkImportFile(evt.target.files[0].name)){
+                            
+                            // read file
+                            var reader = new FileReader()
+                            if(this.import.fileType == 'excel'){
+                                reader.onload = this.onReaderLoadExcel
+                                reader.readAsBinaryString(evt.target.files[0])
+                            }
+                            else{
+                                reader.onload = this.onReaderLoad
+                                reader.readAsText(evt.target.files[0])
+                            }
+                        }
+                        else{
+                            alert("Please select a valid JSON/Excel File!");
+                            this.closeImport();
+                        }
+                        
+                    }
+                    else {
+                        alert("Your browser is not Supported yet! Try using Chrome or Firefox.");
+                    }
                 },
                 
                 onReaderLoad : function(evt){
+                    console.log('Parsing Import File')
                     var obj = JSON.parse(evt.target.result)
                     if(!obj.project.date || !obj.project.details.name){
                         alert("Invalid Backup File!")
                     }
                     else{
+                        document.getElementById("selectImportFileBtn").setAttribute("class","d-none")
                         document.getElementById("import-backup-details").setAttribute("class","")
                         document.getElementById("import-backup-name").innerText = "Project Name: "+obj.project.details.name
                         let da = new Date(obj.project.date)
                         document.getElementById("import-backup-date").innerText = "Date: "+da.toString()
-                        this.import_data = obj
+                        this.import.data = obj
                     }
                 },
+                onReaderLoadExcel : function(evt){
+                    const data = evt.target.result;
+					const workbook = XLSX.read(data, {
+						type: "binary"
+					});
+					workbook.SheetNames.forEach(sheet => {
+						let rowObject = XLSX.utils.sheet_to_row_object_array(
+							workbook.Sheets[sheet]
+						);
+						const excel_parsed_data = rowObject;
+						// console.log("Final Excel JSON Object",excel_parsed_data);
+                        
+                        // display import file information
+                        document.getElementById("selectImportFileBtn").setAttribute("class","d-none")
+                        document.getElementById("import-backup-details").setAttribute("class","")
+                        document.getElementById("import-backup-name").innerText = "File Name: "+this.import.fileName
 
+                        //parse excel object to temporary import data
+                        const excelRows = []
+                        for(const xlRow of excel_parsed_data){
+                            let newRow = {}
+                            newRow.url = xlRow['URL']
+                            newRow.da = xlRow['DA']
+                            newRow.pa = xlRow['PA']
+                            newRow.type = xlRow['Type']
+                            newRow.df = xlRow['FollowType']
+                            newRow.tag = xlRow['AnchorTag']
+                            newRow.user = xlRow['Username']
+                            newRow.pass = xlRow['Password']
+                            excelRows.push(newRow)
+                        }
+                        
+                        this.import.data = excelRows;
+					});
+                    
+                },
                 finishImport : function(){
-                    let obj = this.import_data
-                    this.project = obj.project.details
-                    this.rows = obj.project.data
+                    if(this.import.fileType == 'excel'){
+                        this.rows = this.import.data
+                    }
+                    else{
+                        let obj = this.import.data
+                        this.project = obj.project.details
+                        this.rows = obj.project.data
+                    }
                     this.closeImport();
                     console.log("Import Finished!")
                 },
@@ -407,10 +497,13 @@
                 closeImport: function(){
                     this.sections.import = !this.sections.import
                     
+                    document.getElementById("selectImportFileBtn").setAttribute("class","btn btn-primary shadow")
                     document.getElementById("import-backup-details").setAttribute("class","d-none")
                     document.getElementById("import-backup-name").innerText = ""
                     document.getElementById("import-backup-date").innerText = ""
-                    this.import_data = {}
+                    this.import.fileName = ''
+                    this.import.fileType = ''
+                    this.import.data = {}
                 },
 
                 generateReport: function(){
