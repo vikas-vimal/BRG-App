@@ -423,6 +423,8 @@
 					const workbook = XLSX.read(data, {
 						type: "binary"
 					});
+                    //save parsed rows
+                    const excelRows = []
 					workbook.SheetNames.forEach(sheet => {
 						let rowObject = XLSX.utils.sheet_to_row_object_array(
 							workbook.Sheets[sheet]
@@ -430,13 +432,6 @@
 						const excel_parsed_data = rowObject;
 						// console.log("Final Excel JSON Object",excel_parsed_data);
                         
-                        // display import file information
-                        document.getElementById("selectImportFileBtn").setAttribute("class","d-none")
-                        document.getElementById("import-backup-details").setAttribute("class","")
-                        document.getElementById("import-backup-name").innerText = "File Name: "+this.import.fileName
-
-                        //parse excel object to temporary import data
-                        const excelRows = []
                         for(const xlRow of excel_parsed_data){
                             let newRow = {}
                             newRow.url = xlRow['URL']
@@ -450,8 +445,13 @@
                             excelRows.push(newRow)
                         }
                         
-                        this.import.data = excelRows;
 					});
+                    // display import file information
+                    document.getElementById("selectImportFileBtn").setAttribute("class","d-none")
+                    document.getElementById("import-backup-details").setAttribute("class","")
+                    document.getElementById("import-backup-name").innerText = "File Name: "+this.import.fileName
+
+                    this.import.data = excelRows;
                     
                 },
                 finishImport : function(){
